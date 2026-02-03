@@ -568,12 +568,12 @@ func (vm *VM) Run(ctx context.Context, ipSeq iter.Seq[net.IP], callback func(Res
 		if ctx.Err() != nil {
 			break
 		}
-		res := vm.executeIP(ip)
+		res := vm.ExecuteIP(ip)
 		callback(res)
 	}
 }
 
-func (vm *VM) executeIP(ip net.IP) Result {
+func (vm *VM) ExecuteIP(ip net.IP) Result {
 	ctx := Context{IP: ip}
 	defer func() {
 		if ctx.TLSConn != nil {
@@ -582,9 +582,8 @@ func (vm *VM) executeIP(ip net.IP) Result {
 			ctx.TCPConn.Close()
 		}
 	}()
-	var start time.Time
+	start := time.Now()
 	for i, instr := range vm.program {
-		start = time.Now()
 		if err := instr.Execute(&ctx); err != nil {
 			return Result{
 				IP:       ip,
@@ -595,5 +594,8 @@ func (vm *VM) executeIP(ip net.IP) Result {
 		}
 	}
 
-	return Result{IP: ip, Success: true}
+	return Result{
+		IP: ip, Success: true,
+		Duration: time.Since(start),
+	}
 }
