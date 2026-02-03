@@ -64,13 +64,18 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mithra",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "Sample and probe IPs from CIDR ranges",
+	Long: `Mithra is a network probing tool that samples IP addresses from CIDR ranges
+and tests their connectivity and HTTP behavior.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+It can:
+- Randomly sample IPs from large CIDRs with minimum and maximum limits.
+- Perform TCP and TLS-based probes with optional SNI.
+- Validate HTTP responses by expected status code.
+- Apply per-IP timeouts for controlled execution.
+
+Mithra is designed for automated validation of IP ranges, service reachability,
+and large-scale network checks.`,
 	Version: git.String(),
 	PersistentPreRun: func(_ *cobra.Command, _ []string) {
 		if debug {
