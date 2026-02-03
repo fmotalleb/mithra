@@ -120,6 +120,6 @@ mithra --cidr 10.0.0.0/16 --min-count 20 --max-count 100 --chance 0.2
 
 ## Output
 
-* Successful probes are logged at `info` level.
-* Failed probes are logged at `debug` level.
-* Results include IP, status, and execution metadata.
+- Successful probes are logged at `info` level.
+- Failed probes are logged at `debug` level.
+- Results include IP, status, and execution metadata.
