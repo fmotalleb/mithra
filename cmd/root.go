@@ -114,7 +114,26 @@ and large-scale network checks.`,
 		if ipSamples, err = cfg.ReadCIDRsSamples(); err != nil {
 			return err
 		}
+
 		logger := log.FromContext(ctx)
+
+		output := func(res vm.Result) {}
+		var outputFile string
+		if outputFile, err = cmd.Flags().GetString("output"); err == nil && outputFile != "" {
+			f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE, os.ModeAppend)
+			if err != nil {
+				return err
+			}
+			mux := new(sync.Mutex)
+			output = func(res vm.Result) {
+				mux.Lock()
+				defer mux.Unlock()
+				_, wErr := f.WriteString(res.IP.String() + "\n")
+				if wErr != nil {
+					logger.Error("failed to write to output file", zap.Error(wErr))
+				}
+			}
+		}
 		wg := new(sync.WaitGroup)
 		for _, i := range ipSamples {
 			wg.Go(func() {
@@ -123,9 +142,20 @@ and large-scale network checks.`,
 					i,
 					func(res vm.Result) {
 						if res.Success {
-							logger.Info("success", zap.Any("result", res))
+							logger.Info(
+								"success",
+								zap.String("ip", res.IP.String()),
+								zap.Duration("duration", res.Duration),
+								zap.Bool("success", true),
+							)
+							go output(res)
 						} else {
-							logger.Debug("failed", zap.Any("result", res))
+							logger.Debug("failed",
+								zap.String("ip", res.IP.String()),
+								zap.Duration("duration", res.Duration),
+								zap.Bool("success", false),
+								zap.Error(res.Error),
+							)
 						}
 					},
 				)
@@ -154,12 +184,13 @@ func init() {
 	rootCmd.Flags().DurationP("timeout", "t", time.Second, "timeout of execution for each IP")
 	rootCmd.Flags().String("sni", "", "sni address to check response against")
 	rootCmd.Flags().Int("port", 443, "port to test against")
-	rootCmd.Flags().Int("status", 0, "http status code expected from server, (zero means no http check)")
+	rootCmd.Flags().Int("status", 200, "http status code expected from server, (zero means no http check)")
 
 	rootCmd.Flags().Int("min-count", 1, "minimum IP samples from each CIDR")
 	rootCmd.Flags().Int("max-count", 30, "maximum IP samples from each CIDR")
 	rootCmd.Flags().Float64("chance", 0.05, "chance of picking each IP sample from CIDR")
 
+	rootCmd.Flags().StringP("output", "o", "", "output file (only success results are saved)")
 }
 
 func buildArgsMap(cmd *cobra.Command) (map[string]any, error) {
