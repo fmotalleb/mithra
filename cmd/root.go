@@ -185,7 +185,7 @@ func init() {
 	rootCmd.Flags().DurationP("timeout", "t", time.Second, "timeout of execution for each IP")
 	rootCmd.Flags().String("sni", "", "sni address to check response against")
 	rootCmd.Flags().Int("port", 443, "port to test against")
-	rootCmd.Flags().Int("status", 200, "http status code expected from server, (zero means no http check)")
+	rootCmd.Flags().Int("status", 0, "http status code expected from server, (zero means no http check)")
 
 	rootCmd.Flags().Int("min-count", 1, "minimum IP samples from each CIDR")
 	rootCmd.Flags().Int("max-count", 30, "maximum IP samples from each CIDR")

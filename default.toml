@@ -1,0 +1,35 @@
+# Underlay program for scanner vm
+# Other examples:
+#  - http.get port=80 header.host=cp.cloudflare.com timeout=300ms path=/ expect.status=204
+#  - tcp.connect port=443 timeout=300ms
+# This is an experimental language and should not be modified under normal circumstances unless you want to do something more experimental
+# This will be evaluated against current config file when the vm is being created, other keys (mostly useless) can be found in ./config/config.go
+program = """
+tls.connect port={{ .Port }} sni={{ .SNI }} timeout={{ .Timeout }}
+{{ if gt .StatusCode 0 -}} tls.http.get header.host={{ .SNI }} path=/ expect.status={{ .StatusCode }} {{- end -}}
+"""
+cidr = [
+  "173.245.48.0/20",
+  "103.21.244.0/22",
+  "103.22.200.0/22",
+  "103.31.4.0/22",
+  "141.101.64.0/18",
+  "108.162.192.0/18",
+  "190.93.240.0/20",
+  "188.114.96.0/20",
+  "197.234.240.0/22",
+  "198.41.128.0/17",
+  "162.158.0.0/15",
+  "104.16.0.0/13",
+  "104.24.0.0/14",
+  "172.64.0.0/13",
+  "131.0.72.0/22",
+]
+port = 443
+# No http check
+status = 0
+timeout = "1s"
+
+sample_min = 1
+sample_max = 30
+sample_chance = 0.05
