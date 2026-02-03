@@ -1,4 +1,4 @@
-module github.com/golang-templates/seed
+module github.com/fmotalleb/mithra
 
 go 1.25.5
 

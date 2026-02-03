@@ -3,36 +3,61 @@ version: 2
 before:
   hooks:
     - go mod download
+    - go generate ./...
 builds:
   - env:
       - CGO_ENABLED=0
+    ldflags:
+      - "-s"
+      - "-w"
+      - "-X github.com/fmotalleb/go-tools/git.Version={{.Version}}"
+      - "-X github.com/fmotalleb/go-tools/git.Commit={{.ShortCommit}}"
+      - "-X github.com/fmotalleb/go-tools/git.Date={{.Date}}"
+      - "-X github.com/fmotalleb/go-tools/git.Branch={{.Branch}}"
     goos:
       - darwin
       - linux
       - windows
     goarch:
       - amd64
+      - arm64
+
 archives:
   - format_overrides:
       - goos: windows
-        formats: 
+        formats:
           - zip
-dockers:
-  - image_templates:
-    - "ghcr.io/golang-templates/seed:latest"
-    - "ghcr.io/golang-templates/seed:{{ .Major }}"
-    - "ghcr.io/golang-templates/seed:{{ .Major }}.{{ .Minor }}"
-    - "ghcr.io/golang-templates/seed:{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
-    build_flag_templates:
-    - "--pull"
-    # OCI annotations: https://github.com/opencontainers/image-spec/blob/main/annotations.md
-    - "--label=org.opencontainers.image.created={{.Date}}"
-    - "--label=org.opencontainers.image.name={{.ProjectName}}"
-    - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-    - "--label=org.opencontainers.image.version={{.Version}}"
-    - "--label=org.opencontainers.image.source={{.GitURL}}"
+
+
+dockers_v2:
+  - id: mithra
+    sbom: false
+    platforms:
+      - linux/amd64
+    images:
+      - ghcr.io/fmotalleb/mithra
+    tags:
+      - "{{ .Version }}"
+      - "{{ .Major }}"
+      - "{{ .Major }}.{{ .Minor }}"
+      - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+      - latest
+    labels:
+      "org.opencontainers.image.description": "Mithra (IP Scanner)"
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.name": "{{.ProjectName}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
+      "org.opencontainers.image.source": "{{.GitURL}}"
+    ids:
+      - default
+    flags:
+      - --target=slim
+
 release:
   github:
+    name: mithra
+    owner: fmotalleb
   name_template: "{{.Version}}"
   prerelease: auto
   mode: append
