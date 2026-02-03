@@ -51,8 +51,6 @@ dockers_v2:
       "org.opencontainers.image.source": "{{.GitURL}}"
     ids:
       - default
-    flags:
-      - --target=slim
 
 release:
   github:
