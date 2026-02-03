@@ -17,6 +17,8 @@ type Config struct {
 	SamplesMinimum int     `mapstructure:"sample_min" default:"{{ .args.sample_min }}"`
 	SamplesMaximum int     `mapstructure:"sample_max" default:"{{ .args.sample_max }}"`
 	SamplesChance  float64 `mapstructure:"sample_chance" default:"{{ .args.sample_chance }}"`
+
+	Program string `mapstructure:"program"`
 }
 
 func (c *Config) ReadCIDRs() ([]*cidr.Iterator, error) {

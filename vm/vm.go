@@ -537,7 +537,9 @@ func performHTTPExchange(conn net.Conn, path, ip string, expect int, extraHeader
 		}
 		statusCode = statusCode*statusShiftFactor + int(c-'0')
 	}
-
+	if expect == 0 {
+		return nil
+	}
 	if statusCode != expect {
 		return errors.New("status mismatch: expected " + strconv.Itoa(expect) + " got " + strconv.Itoa(statusCode))
 	}

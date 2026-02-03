@@ -22,8 +22,8 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"cmp"
 	"context"
-	"fmt"
 	"iter"
 	"net"
 	"os"
@@ -33,6 +33,7 @@ import (
 
 	"github.com/fmotalleb/go-tools/git"
 	"github.com/fmotalleb/go-tools/log"
+	"github.com/fmotalleb/go-tools/template"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
@@ -213,7 +214,7 @@ func buildArgsMap(cmd *cobra.Command) (map[string]any, error) {
 		return nil, err
 	}
 	// store as seconds (matches Config.Timeout int)
-	args["timeout"] = timeout
+	args["timeout"] = timeout.Nanoseconds()
 
 	if args["port"], err = cmd.Flags().GetInt("port"); err != nil {
 		return nil, err
@@ -239,9 +240,16 @@ func buildArgsMap(cmd *cobra.Command) (map[string]any, error) {
 }
 
 func buildVM(cfg *config.Config) (*vm.VM, error) {
-	program := fmt.Sprintf("tls.connect port=%d sni=%s timeout=%d", cfg.Port, cfg.SNI, cfg.Timeout)
-	if cfg.StatusCode > 0 {
-		program += fmt.Sprintf("tls.http.get header.host=%s path=/ expect.status=%d", cfg.SNI, cfg.StatusCode)
+
+	defaultProgram := `
+tls.connect port={{ .Port }} sni={{ .SNI }} timeout={{ .Timeout }}
+{{ if gt .StatusCode 0 -}} tls.http.get header.host={{ .SNI }} path=/ expect.status={{ .StatusCode }} {{- end -}}
+`
+	programStr := cmp.Or(cfg.Program, defaultProgram)
+	program, err := template.EvaluateTemplate(programStr, cfg)
+	if err != nil {
+		return nil, err
 	}
+
 	return vm.New([]byte(program))
 }
