@@ -62,7 +62,7 @@ var (
 	}
 )
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd represents the base command when called without any subcommands.
 var rootCmd = &cobra.Command{
 	Use:   "mithra",
 	Short: "Sample and probe IPs from CIDR ranges",
@@ -121,7 +121,8 @@ and large-scale network checks.`,
 		output := func(res vm.Result) {}
 		var outputFile string
 		if outputFile, err = cmd.Flags().GetString("output"); err == nil && outputFile != "" {
-			f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE, os.ModeAppend)
+			var f *os.File
+			f, err = os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE, 0644)
 			if err != nil {
 				return err
 			}
@@ -240,7 +241,6 @@ func buildArgsMap(cmd *cobra.Command) (map[string]any, error) {
 }
 
 func buildVM(cfg *config.Config) (*vm.VM, error) {
-
 	defaultProgram := `
 tls.connect port={{ .Port }} sni={{ .SNI }} timeout={{ .Timeout }}
 {{ if gt .StatusCode 0 -}} tls.http.get header.host={{ .SNI }} path=/ expect.status={{ .StatusCode }} {{- end -}}

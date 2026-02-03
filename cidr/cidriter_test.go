@@ -108,6 +108,7 @@ func TestIteratorSeq(t *testing.T) {
 		}
 	}
 }
+
 func BenchmarkNext(b *testing.B) {
 	for _, cidrStr := range testCIDRs {
 		b.Run(cidrStr, func(b *testing.B) {

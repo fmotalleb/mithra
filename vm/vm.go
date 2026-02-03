@@ -136,6 +136,8 @@ func (p Properties) CompileHeaders(defaultHost string) []byte {
 // Context holds the state for a single IP execution.
 // It is designed to be reused or stack-allocated to minimize GC pressure.
 type Context struct {
+	context.Context
+
 	IP      net.IP
 	TCPConn net.Conn
 	TLSConn *tls.Conn
@@ -281,7 +283,10 @@ func parseTCPConnect(args [][]byte) (Instruction, error) {
 
 func (t *TCPConnect) Execute(ctx *Context) error {
 	addr := net.JoinHostPort(ctx.IP.String(), strconv.Itoa(int(t.Port)))
-	conn, err := net.DialTimeout("tcp", addr, t.Timeout)
+	dialer := &net.Dialer{
+		Timeout: t.Timeout,
+	}
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
 	if err != nil {
 		return err
 	}
@@ -289,7 +294,7 @@ func (t *TCPConnect) Execute(ctx *Context) error {
 	// Spec for TCP connect does not explicitly say "store", but Context does.
 	// We close previous if exists to be safe, though spec implies sequential usage.
 	if ctx.TCPConn != nil {
-		ctx.TCPConn.Close()
+		_ = ctx.TCPConn.Close()
 	}
 	ctx.TCPConn = conn
 	return nil
@@ -352,12 +357,12 @@ func (t *TLSConnect) Execute(ctx *Context) error {
 
 	// Set deadline for handshake
 	if err := tlsConn.SetDeadline(time.Now().Add(t.Timeout)); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return err
 	}
 
-	if err := tlsConn.Handshake(); err != nil {
-		conn.Close()
+	if err := tlsConn.HandshakeContext(ctx); err != nil {
+		_ = conn.Close()
 		return err
 	}
 
@@ -413,7 +418,10 @@ func parseHTTPGet(args [][]byte) (Instruction, error) {
 
 func (h *HTTPGet) Execute(ctx *Context) error {
 	addr := net.JoinHostPort(ctx.IP.String(), strconv.Itoa(int(h.Port)))
-	conn, err := net.DialTimeout("tcp", addr, h.Timeout)
+	dialer := &net.Dialer{
+		Timeout: h.Timeout,
+	}
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
 	if err != nil {
 		return err
 	}
@@ -470,7 +478,7 @@ func (t *TLSHTTPGet) String() string { return "tls.http.get" }
 
 // ============================================================================
 // 4. Runtime Helpers (Low-Level HTTP)
-// ============================================================================
+// ============================================================================.
 const statusShiftFactor = 10
 
 // performHTTPExchange executes a raw HTTP/1.0 request to avoid net/http allocations
@@ -570,13 +578,16 @@ func (vm *VM) Run(ctx context.Context, ipSeq iter.Seq[net.IP], callback func(Res
 		if ctx.Err() != nil {
 			break
 		}
-		res := vm.ExecuteIP(ip)
+		res := vm.ExecuteIP(ctx, ip)
 		callback(res)
 	}
 }
 
-func (vm *VM) ExecuteIP(ip net.IP) Result {
-	ctx := Context{IP: ip}
+func (vm *VM) ExecuteIP(callerCtx context.Context, ip net.IP) Result {
+	ctx := Context{
+		Context: callerCtx,
+		IP:      ip,
+	}
 	defer func() {
 		if ctx.TLSConn != nil {
 			ctx.TLSConn.Close()

@@ -30,6 +30,7 @@ func Parse(ctx context.Context, dst *Config, path string, args map[string]any) e
 	defaulter.ApplyDefaults(dst, args)
 	return nil
 }
+
 func getCIDRs(args map[string]any) []string {
 	m := args["args"].(map[string]any)
 	return m["cidrs"].([]string)
