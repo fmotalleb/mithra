@@ -29,28 +29,26 @@ archives:
           - zip
 
 
-dockers_v2:
-  - id: mithra
-    sbom: false
-    platforms:
-      - linux/amd64
-    images:
-      - ghcr.io/fmotalleb/mithra
-    tags:
-      - "{{ .Version }}"
-      - "{{ .Major }}"
-      - "{{ .Major }}.{{ .Minor }}"
-      - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
-      - latest
-    labels:
-      "org.opencontainers.image.description": "Mithra (IP Scanner)"
-      "org.opencontainers.image.created": "{{.Date}}"
-      "org.opencontainers.image.name": "{{.ProjectName}}"
-      "org.opencontainers.image.revision": "{{.FullCommit}}"
-      "org.opencontainers.image.version": "{{.Version}}"
-      "org.opencontainers.image.source": "{{.GitURL}}"
-    ids:
-      - default
+# dockers_v2:
+#   - id: mithra
+#     sbom: false
+#     platforms:
+#       - linux/amd64
+#     images:
+#       - ghcr.io/fmotalleb/mithra
+#     tags:
+#       - "{{ .Version }}"
+#       - "{{ .Major }}"
+#       - "{{ .Major }}.{{ .Minor }}"
+#       - "{{ .Major }}.{{ .Minor }}.{{ .Patch }}"
+#       - latest
+#     labels:
+#       "org.opencontainers.image.description": "Mithra (IP Scanner)"
+#       "org.opencontainers.image.created": "{{.Date}}"
+#       "org.opencontainers.image.name": "{{.ProjectName}}"
+#       "org.opencontainers.image.revision": "{{.FullCommit}}"
+#       "org.opencontainers.image.version": "{{.Version}}"
+#       "org.opencontainers.image.source": "{{.GitURL}}"
 
 release:
   github:
